@@ -8,3 +8,11 @@ edition = "2021"
 [dependencies]
 walkdir = "2.3"
 druid = "0.8.3"
+regex = "1.5"
+
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
