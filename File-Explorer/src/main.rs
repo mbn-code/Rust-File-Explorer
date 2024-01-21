@@ -1,71 +1,65 @@
-extern crate walkdir;
-extern crate regex;
-
-
-use std::env;
-use std::fs::File;
-use std::io::{self, BufRead};
-
-use regex::Regex;
+use druid::{AppLauncher, Data, Env, Lens, LocalizedString, Selector, SingleUse, Target, Widget, WidgetExt, WindowDesc};
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use walkdir::WalkDir;
+use std::env;
 
-fn search_by_name(directory: &str, file_name: &str) {
-    let file_name_regex = Regex::new(file_name).expect("Invalid regex");
 
-    for entry in WalkDir::new(directory) {
-        let entry = entry.expect("Error reading directory entry");
-        let file_path = entry.path();
 
-        if let Some(file_name) = file_path.file_name() {
-            if file_name_regex.is_match(file_name.to_str().unwrap_or("")) {
-                println!("{}", file_path.display());
-            }
-        }
-    }
+#[derive(Clone, Data, Lens)]
+struct AppState {
+    #[lens(ignore)]
+    root_path: Arc<Mutex<PathBuf>>,
+    search_term: String,
+    result: String,
 }
 
-fn search_by_content(directory: &str, content: &str) {
-    for entry in WalkDir::new(directory) {
-        let entry = entry.expect("Error reading directory entry");
-        let file_path = entry.path();
+fn build_ui() -> impl Widget<AppState> {
+    druid::widget::Flex::column()
+        .with_child(druid::widget::TextBox::new().lens(AppState::search_term))
+        .with_child(druid::widget::Button::new("Search").on_click(|_, data: &mut AppState, _| {
+            let root_path = data.root_path.lock().unwrap().clone();
+            let search_term = data.search_term.clone();
 
-        if file_path.is_file() {
-            if let Ok(file) = File::open(file_path) {
-                let reader = io::BufReader::new(file);
+            let result = search_files(&root_path, &search_term);
+            data.result = result;
+        }))
+        .with_child(druid::widget::Label::new(|data: &AppState, _env: &_| data.result.clone()))
+}
 
-                for line in reader.lines() {
-                    if let Ok(line) = line {
-                        if line.contains(content) {
-                            println!("{}", file_path.display());
-                            break;
-                        }
+fn search_files(root_path: &Path, search_term: &str) -> String {
+    let mut result = String::new();
+
+    for entry in WalkDir::new(root_path) {
+        if let Ok(entry) = entry {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(file_name) = path.file_name() {
+                    if file_name.to_string_lossy().contains(search_term) {
+                        result.push_str(&format!("{}\n", path.display()));
                     }
                 }
             }
         }
     }
+
+    result
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let main_window = WindowDesc::new(build_ui())
+    .title(LocalizedString::new("File Explorer"));
 
-    if args.len() < 3 {
-        println!("Usage: {} <directory> <search_term> [options: -n for name, -c for content]", args[0]);
-        return;
-    }
+    let root_path = Arc::new(Mutex::new(env::current_dir().unwrap()));
 
-    let directory = &args[1];
-    let search_term = &args[2];
+    let app_state = AppState {
+        root_path: root_path.clone(),
+        search_term: String::new(),
+        result: String::new(),
+    };
 
-    if args.len() == 3 {
-        // Default search by name
-        search_by_name(directory, search_term);
-    } else {
-        let option = &args[3];
-        match option.as_str() {
-            "-n" => search_by_name(directory, search_term),
-            "-c" => search_by_content(directory, search_term),
-            _ => println!("Invalid option: {}", option),
-        }
-    }
+    AppLauncher::with_window(main_window)
+        .log_to_console()
+        .launch(app_state)
+        .expect("Failed to launch application");
 }

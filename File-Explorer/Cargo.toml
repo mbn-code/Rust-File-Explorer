@@ -7,4 +7,5 @@ edition = "2021"
 
 [dependencies]
 walkdir = "2.3"
-regex = "1"
+druid = "0.8.3"
+open = "1.4.0"
