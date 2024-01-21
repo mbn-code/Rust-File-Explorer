@@ -8,4 +8,3 @@ edition = "2021"
 [dependencies]
 walkdir = "2.3"
 druid = "0.8.3"
-open = "1.4.0"
