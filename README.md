@@ -1,5 +1,6 @@
 # Rust Windows File Explorer
 A simple file explorer written in Rust using the Druid framework.
+This file explorer utilises regex in Rust and works on both Windows and macOS
 
 ## Features
 
