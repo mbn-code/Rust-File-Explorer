@@ -1,8 +1,6 @@
 use druid::{widget, AppLauncher, Data, Lens, LocalizedString, Widget, WidgetExt, WindowDesc};
 use regex::Regex;
 
-
-
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
@@ -51,11 +49,9 @@ fn build_ui() -> impl Widget<AppState> {
         .with_child(scrollable_label)
 }
 
-fn search_files(
-    root_path: &Path,
-    search_term: &str,
-    tx: Option<mpsc::Sender<SearchUpdate>>,
-) -> String {
+// This function takes in a root path and a search term and returns a string of the search results
+fn search_files(root_path: &Path, search_term: &str, tx: Option<mpsc::Sender<SearchUpdate>>) -> String {
+    
     let mut result = String::new();
     let search_term_regex = Regex::new(&format!(r"(?i){}", search_term)).expect("Invalid regex");
 
