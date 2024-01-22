@@ -14,13 +14,13 @@ This file explorer utilises regex in Rust and works on both Windows and macOS
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/CollinEdward/Rust-Windows-File-Explorer.git
+   git clone https://github.com/CollinEdward/Rust-File-Explorer.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd Rust-Windows-File-Explorer
+   cd Rust-File-Explorer
    ```
 
 3. Build and run the application:
