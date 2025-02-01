@@ -3,15 +3,9 @@ name = "file_explorer"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-walkdir = "2.3"
 druid = "0.8.3"
-regex = "1.5"
-
-[profile.dev]
-panic = "abort"
-
-[profile.release]
-panic = "abort"
+regex = "1.7"
+walkdir = "2.3"
+im = "15.0"
+rfd = "0.11.0"
