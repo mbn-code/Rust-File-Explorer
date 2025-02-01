@@ -1,7 +1,7 @@
 use druid::widget::{Button, Flex, Label, List, Scroll, TextBox};
 use druid::{
     AppDelegate, AppLauncher, Command, Data, DelegateCtx, Env, Lens, Selector, Target,
-    Widget, WidgetExt, WindowDesc, commands, FileDialogOptions, theme,
+    Widget, WidgetExt, WindowDesc, commands, FileDialogOptions, theme, Color, // add import for Color
 };
 use regex::Regex;
 use std::path::{Path, PathBuf}; // added Path
@@ -104,7 +104,7 @@ fn build_ui() -> impl Widget<AppState> {
         .with_child(search_btn.padding(8.0))
         .with_flex_child(Scroll::new(results_list).expand(), 1.0)
         .padding(12.0)
-        .background(theme::WINDOW_BACKGROUND_COLOR)
+        .background(Color::BLACK) // changed background to black
 }
 
 /// Searches files and directories under the given directory whose names match the search term (case-insensitive)
