@@ -1,10 +1,10 @@
 use druid::widget::{Button, Flex, Label, List, Scroll, TextBox};
 use druid::{
     AppDelegate, AppLauncher, Command, Data, DelegateCtx, Env, Lens, Selector, Target,
-    Widget, WidgetExt, WindowDesc, commands, FileDialogOptions, theme, Color, // add import for Color
+    Widget, WidgetExt, WindowDesc, commands, FileDialogOptions, theme, Color,
 };
 use regex::Regex;
-use std::path::{Path, PathBuf}; // added Path
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::thread;
 use walkdir::WalkDir;
@@ -40,32 +40,17 @@ struct AppState {
 }
 
 fn build_ui() -> impl Widget<AppState> {
-    // Button to let the user choose a directory (using rfd for a native dialog)
+    // Use string literals for the buttons instead of Label::new(...)
     let choose_dir_btn = Button::new("Choose Directory")
         .padding(8.0)
-        .background(theme::BUTTON_DARK)
+        .background(Color::rgb8(0x44, 0x44, 0x44))
         .on_click(|ctx, _data, _env| {
             ctx.submit_command(Command::new(commands::SHOW_OPEN_PANEL, FileDialogOptions::default(), Target::Auto));
         });
 
-    // Replace the static label with an editable text box for directory input.
-    let directory_box = TextBox::new()
-        .with_placeholder("Enter directory path")
-        .with_text_size(14.0)
-        .padding(8.0)
-        .lens(AppState::root_path);
-
-    // Text box for entering the search term.
-    let search_box = TextBox::new()
-        .with_placeholder("Enter search term")
-        .with_text_size(14.0)
-        .padding(8.0)
-        .lens(AppState::search_term);
-
-    // Button to kick off the search.
     let search_btn = Button::new("Search")
         .padding(8.0)
-        .background(theme::BUTTON_DARK)
+        .background(Color::rgb8(0x44, 0x44, 0x44))
         .on_click(|ctx, data: &mut AppState, _env| {
             let root = data.root_path.clone();
             let term = data.search_term.clone();
@@ -83,28 +68,52 @@ fn build_ui() -> impl Widget<AppState> {
             });
         });
 
-    // Create a list widget to display search results.
+    // TextBox: dark background and white text; uses lens for state binding
+    let directory_box = TextBox::new()
+        .with_placeholder("Enter directory path")
+        .with_text_size(14.0)
+        .with_text_color(Color::WHITE)
+        .padding(8.0)
+        .background(Color::rgb8(0x33, 0x33, 0x33))
+        .lens(AppState::root_path);
+
+    let search_box = TextBox::new()
+        .with_placeholder("Enter search term")
+        .with_text_size(14.0)
+        .with_text_color(Color::WHITE)
+        .padding(8.0)
+        .background(Color::rgb8(0x33, 0x33, 0x33))
+        .lens(AppState::search_term);
+
+    // List: style each item with white text, padding, dark background, border, and rounded corners.
     let results_list = List::new(|| {
         Label::new(|item: &String, _env: &_| format!("{}", item))
             .with_text_size(14.0)
-            .padding(6.0)
+            .with_text_color(Color::WHITE)
+            .padding(8.0)
+            .background(Color::rgb8(0x33, 0x33, 0x33))
+            .border(Color::rgb8(0x55, 0x55, 0x55), 1.0)
+            .rounded(4.0)
             .on_click(|_ctx, item: &mut String, _env| {
                 open_path(item);
             })
     })
     .with_spacing(4.0)
-    // Lens into the search_results field (which is now an Arc<Vec<String>>)
     .lens(AppState::search_results);
 
-    // Layout the UI elements vertically.
+    let scroll = Scroll::new(results_list)
+        .background(Color::BLACK)
+        .expand();
+
+    // Main layout with black background
     Flex::column()
-        .with_child(choose_dir_btn.padding(8.0))
-        .with_child(directory_box.padding(8.0)) // new text box for directory input
-        .with_child(search_box.padding(8.0))
-        .with_child(search_btn.padding(8.0))
-        .with_flex_child(Scroll::new(results_list).expand(), 1.0)
+        .with_child(choose_dir_btn)
+        .with_child(directory_box)
+        .with_child(search_box)
+        .with_child(search_btn)
+        .with_flex_child(scroll, 1.0)
         .padding(12.0)
-        .background(Color::BLACK) // changed background to black
+        .background(Color::BLACK)
 }
 
 /// Searches files and directories under the given directory whose names match the search term (case-insensitive)
@@ -179,6 +188,14 @@ fn main() {
 
     // Launch the application with the delegate to handle background commands.
     AppLauncher::with_window(main_window)
+        .configure_env(|env: &mut Env, _| {
+            env.set(druid::theme::BACKGROUND_LIGHT, Color::BLACK);
+            env.set(druid::theme::TEXT_COLOR, Color::WHITE);
+            env.set(druid::theme::PLACEHOLDER_COLOR, Color::grey(0.6));
+            // Replace WIDGET_BACKGROUND_COLOR with WINDOW_BACKGROUND_COLOR
+            env.set(druid::theme::WINDOW_BACKGROUND_COLOR, Color::rgb8(0x33, 0x33, 0x33));
+            env.set(druid::theme::BUTTON_DARK, Color::rgb8(0x44, 0x44, 0x44));
+        })
         .delegate(Delegate)
         .launch(initial_state)
         .expect("Failed to launch application");
